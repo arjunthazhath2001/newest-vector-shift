@@ -63,6 +63,9 @@ export const IntegrationForm = () => {
 
         {/* After returning back from "hubspot.js / notion.js/ airtable.js" where OAuth process just took place and we have got hold of the access token. The integrationParams we passed in the above component will have an object assigned and this object will contain credentials(access token) that will help us access or load data from the authorised service. AND THE BELOW COMPONENT IS TRIGGERED ONLY WHEN THE "integrationParams" has a value assigned to it----indicating that access token is received post successful OAuth process. With this credentials stored in IntegrationParams the DataForm component is called which is inside "data-form.js" ---and this component triggers the endpoint that can be used to load data from hubspot(or any other integration) and also clear the data. */}
 
+
+
+        {/* NOW we are back from the hubspot.js file and we do have the credentials that we fetched from our redis DB. And the type that was set was "Hubspot". so this will TRIGGER THE DataForm component. So lets go to data-form.js and see how it functions over there */}
         {integrationParams?.credentials && 
         <Box sx={{mt: 2}}>
             <DataForm integrationType={integrationParams?.type} credentials={integrationParams?.credentials} />

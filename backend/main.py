@@ -88,6 +88,8 @@ async def get_hubspot_credentials_integration(user_id: str = Form(...), org_id: 
 
 
 
-@app.post('/integrations/hubspot/get_hubspot_items')
+@app.post('/integrations/hubspot/load')  # changed from /hubspot/get_hubspot_items---> /hubspot/load
 async def load_slack_data_integration(credentials: str = Form(...)):
     return await get_items_hubspot(credentials)
+
+# we came from data-form.js with the credentials and since the endpoint type was "hubspot" we reached this endpoint. This is calling a function get_items_hubspot and passing the credentials as a functional argument. So lets go to that function inside hubspot.py. 

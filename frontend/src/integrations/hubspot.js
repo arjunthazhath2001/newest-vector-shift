@@ -18,9 +18,6 @@ export const HubspotIntegration = ({ user, org, integrationParams, setIntegratio
     const [isConnected, setIsConnected] = useState(false); //CHANGES TO TRUE WHEN THE OAuth process is finished and the authorization code has been received
 
 
-
-
-
     // Function to open OAuth in a new window
     const handleConnectClick = async () => {
         try {
@@ -97,6 +94,13 @@ export const HubspotIntegration = ({ user, org, integrationParams, setIntegratio
         setIsConnected(integrationParams?.credentials ? true : false)
     }, []);
 
+    //If credentials exist when the page is mounted, then the 'isConnected' state variable is set to true and the 'button name' reflects that
+
+    //////////////////////////////////////////////////////////////////////////////////////////////
+
+    // SINCE THE WINDOW IS CLOSED, NOW FROM HERE THE CONTROL WILL GO BACK TO THE "integration-form.js FILE". SO LETS GO BACK THERE AND RENDER THE NEXT COMPONENT.
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
     return (
         <>
         <Box sx={{mt: 2}}>

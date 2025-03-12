@@ -1,10 +1,12 @@
 # hubspot.py
 
+from typing import List
 from fastapi import Request, HTTPException
 import json
 from fastapi.responses import HTMLResponse
 import httpx
 import secrets
+from backend.integrations.integration_item import IntegrationItem
 from redis_client import add_key_value_redis, get_value_redis, delete_key_redis
 import asyncio
 
@@ -105,6 +107,9 @@ async def oauth2callback_hubspot(request: Request): #this function will exchange
     # Execute the code block
     # Await the completion of cleanup afterward 
 
+
+
+
     async with httpx.AsyncClient() as client: #we are creating a new http client called as client. Using the 'with' keyword will close connections once the task of the client is done.
         
         #since the gather function has 2 operations inside both will return values but we are not going to use the return value of delete_key_redis. the only return thats useful for us is the response from the post request (for access token) 
@@ -175,15 +180,177 @@ async def get_hubspot_credentials(user_id, org_id):
 
 
 #Standardizing data from external APIs to our format ensures that the external data can be smoothly processed by our system's backend, stored in our database, and presented in a way that makes sense to our users or other parts of our system.
-async def create_integration_item_metadata_object(response_json):
-    # TODO
-    pass
+
+#################################################################################################
+#PLEASE REFER TO get_hubspot_items function before you look into the below integration item_function 
+#################################################################################################
+
+async def create_integration_item_metadata_object(response_json: dict, item_type: str) -> IntegrationItem:
+    
+    """Creates an integration metadata object from a HubSpot response
+    
+    Args:
+        response_json: The raw JSON response from HubSpot API
+        item_type: The type of HubSpot item (e.g., 'Contact', 'Company')
+        
+    Returns:
+        A standardized IntegrationItem object
+    """
+    # Extract the unique ID from the response
+    item_id = str(response_json.get('id', ''))
+    
+    # Process different item types accordingly
+    if item_type == 'Contact':
+        # For contacts, use first and last name to create a display name
+        properties = response_json.get('properties', {})
+        first_name = properties.get('firstname', '')
+        last_name = properties.get('lastname', '')
+        email = properties.get('email', '')
+        
+        # Construct a name using available information
+        if first_name or last_name:
+            name = f"{first_name} {last_name}".strip()
+        elif email:
+            name = email
+        else:
+            name = f"Contact {item_id}"
+    else:
+        # Generic handling for other item types
+        name = response_json.get('properties', {}).get('name', f"{item_type} {item_id}")
+    
+    # Create and return the standardized IntegrationItem
+    integration_item_metadata = IntegrationItem(
+        id=f"{item_id}_{item_type}",  # Create a unique ID combining HubSpot ID and item type
+        name=name,  # Use the constructed name
+        type=item_type,  # Store the item type
+        creation_time=response_json.get('createdAt'),  # Store creation timestamp if available
+        last_modified_time=response_json.get('updatedAt'),  # Store update timestamp if available
+        # Additional fields could be included here as needed
+    )
+    
+    return integration_item_metadata
+    
 
 
 
 
 
-# the get_items_hubspot needs two helper functions to perform its job
-async def get_items_hubspot(credentials):
-    # TODO
-    pass
+
+
+
+
+# the get_items_hubspot needs a helper function to perform its job----> 
+# 1. create_integration_item_metadata_object and 
+
+async def get_items_hubspot(credentials) -> List[IntegrationItem]: #this is to indicate that we are going to return a list of integrationitems
+
+    #what are integration items though?
+    #its not just about fetching a contact or an item and displaying it. We have to standardise the API response according to a format that our app needs (aka integration item) and then display it to our app users. And for that each item will be processed using the function "create_integration_item_metadata_object". and only after that we will store it in the "list_of_integration_item_metadata"
+    
+    """Aggregates metadata relevant for a HubSpot integration"""
+
+    credentials = json.loads(credentials)
+    access_token = credentials.get('access_token')
+    # if you remember we passed the credentials from our data-form.js file in the string format. but now we have to extract 'access_token' from that credential. so we have to convert that string into json using json.loads(). 
+    #onces thats done then we can use the get function on credentials to get hold of the access token.
+
+
+    # List to store all integration items
+    list_of_integration_item_metadata = []
+    
+    
+    #########################################################################################################################
+
+    # USUALLY THE BASIC FORMAT OF API REQUESTS FOR MOST SERVICES ARE: client.get(url, headers=headers, params=params)
+    # U need a 
+    # 1. "url endpoint : where we are gonna fetch data from", 
+    # 2. "headers: which includes access token and content type", 
+    # 3."params: where we mention filtering instructions, sorting instrucitons, pagination parameters etc"
+
+    #########################################################################################################################
+
+    contacts_url = 'https://api.hubapi.com/crm/v3/objects/contacts'
+
+    #The above url to retrieve contacts in bacthes is in the docs: "https://developers.hubspot.com/docs/guides/api/crm/objects/contacts"
+
+    headers = {
+        'Authorization': f'Bearer {access_token}', # we extracted access token in the first few lines of this function
+        'Content-Type': 'application/json',
+    }
+    
+    # Limit is set to 10 contacts per request    
+    params = {
+        'limit': 10,  # this number can be changed
+     
+    }
+    #to see the list of parameters that you can play with visit: https://developers.hubspot.com/docs/reference/api/crm/objects/contacts#get-%2Fcrm%2Fv3%2Fobjects%2Fcontacts
+
+    # Create an HTTP client that will be reused for all requests. orelse for every single page request you will have to establish a new connectio(3-way handshake) which will be resource and time intensive. thats why we use httpx.AsyncClient for connection pooling. Connect once and carry out multiple requests instead of new connection every time.
+    async with httpx.AsyncClient() as client:
+        has_more = True
+        # Continue fetching data as long as there are more results available
+        while has_more:
+            # Make the API request to HubSpot to fetch contacts
+            response = await client.get(contacts_url, headers=headers, params=params)
+            # Check if the request was successful (HTTP 200 OK status)
+            if response.status_code == 200:
+                # Parse the JSON response
+                response_json = response.json()
+                # Extract the list of contacts from the response. always use response.json() to extract the response so that we can access the key-value pairs inside the response
+
+                #to see how sample response looks like visit: https://developers.hubspot.com/docs/reference/api/crm/objects/contacts#get-%2Fcrm%2Fv3%2Fobjects%2Fcontacts
+
+                #   {
+                #   "paging": {
+                #     "next": {
+                #       "link": "?after=NTI1Cg%3D%3D",
+                #       "after": "NTI1Cg%3D%3D"
+                #     }
+                #   },
+                #   "results": []
+                
+                #response from hubspot has 2 componenets, 1. RESULTS---> contains contact info  2. PAGING---> whether there is a next page
+
+                contacts = response_json.get('results', [])
+                # Extract pagination information
+                paging_info = response_json.get('paging', {})
+
+
+                # Process each contact and transform it to our standard format
+                for contact in contacts:
+                    # Convert each contact to our IntegrationItem format
+                    contact_item = await create_integration_item_metadata_object(contact, 'Contact') #you can take a look at this function above the current function which we are working on 
+
+
+                    # Add the processed contact to our list
+                    list_of_integration_item_metadata.append(contact_item)
+                
+                # Check if there's a next page of results
+                if 'next' in paging_info:
+                    # Get the cursor for the next page
+                    after = paging_info['next'].get('after')
+                    # It’s like saying, “Hey, here’s the special code (after) that lets you grab the next set of contacts.”
+
+
+                    if after:
+                    # "Hey, I’m ready for the next batch of contacts. Here’s the special code you gave me (the cursor)."
+                    # This ensures that, when you make the next request, HubSpot knows to start where the last set of contacts left off, rather than starting from the beginning again.
+                        params['after'] = after 
+                    else:
+                        # No "after" cursor means no more pages
+                        has_more = False
+                else:
+                    # No "next" in paging_info means no more pages
+                    has_more = False
+
+                
+            else:
+                # If the API request failed, log the error and break the loop
+                print(f"Failed to fetch contacts: {response.status_code} - {response.text}")
+                break
+    # Log the total number of items found
+    print(f"Found {len(list_of_integration_item_metadata)} HubSpot integration items")
+
+    # Return the list of standardized integration items
+    return list_of_integration_item_metadata
+

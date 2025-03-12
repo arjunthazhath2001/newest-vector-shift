@@ -3,6 +3,7 @@
 import datetime
 import json
 import secrets
+from typing import List
 from fastapi import Request, HTTPException
 from fastapi.responses import HTMLResponse
 import httpx
@@ -144,7 +145,7 @@ def fetch_items(
             return
 
 
-async def get_items_airtable(credentials) -> list[IntegrationItem]:
+async def get_items_airtable(credentials) -> List[IntegrationItem]:
     credentials = json.loads(credentials)
     url = 'https://api.airtable.com/v0/meta/bases'
     list_of_integration_item_metadata = []
