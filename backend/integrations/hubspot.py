@@ -222,6 +222,7 @@ async def create_integration_item_metadata_object(response_json: dict, item_type
     integration_item_metadata = IntegrationItem(
         id=f"{item_id}_{item_type}",  # Create a unique ID combining HubSpot ID and item type
         name=name,  # Use the constructed name
+        email=email, 
         type=item_type,  # Store the item type
         creation_time=response_json.get('createdAt'),  # Store creation timestamp if available
         last_modified_time=response_json.get('updatedAt'),  # Store update timestamp if available

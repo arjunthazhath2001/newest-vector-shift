@@ -29,12 +29,7 @@ export const HubspotContactsDisplay = ({ data }) => {
                         <ListItem>
                             <ListItemText
                                 primary={contact.name || 'No Name'}
-                                secondary={
-                                    // Extract email from contact name if it contains @ symbol
-                                    contact.name && contact.name.includes('@') 
-                                        ? null  // Name is already an email
-                                        : 'Contact'
-                                }
+                                secondary={contact.email || 'No email'}
                             />
                         </ListItem>
                         {index < data.length - 1 && <Divider />}
