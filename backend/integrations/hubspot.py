@@ -6,9 +6,9 @@ import json
 from fastapi.responses import HTMLResponse
 import httpx
 import secrets
-from backend.integrations.integration_item import IntegrationItem
 from redis_client import add_key_value_redis, get_value_redis, delete_key_redis
 import asyncio
+from integrations.integration_item import IntegrationItem
 
 # If we wish to integrate any service or access its API then we have to register our app first and mention the app name,app description, and scopes(the permissions to access or edit certain information present in the user's account) and we also have to mention redirect URL--> this is the URL that the user will be redirected to once the OAuth is successful. If we do that the "HUBSPOT" developers console or any other service's developers console will give us two main things "CLIENT ID" & "CLIENT SECRET".
 
