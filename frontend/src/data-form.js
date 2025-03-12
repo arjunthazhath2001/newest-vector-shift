@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import {
-    Box,
-    TextField,
-    Button,
-} from '@mui/material';
-import axios from 'axios';
+    Box, 
+    Typography, 
+    Button
+} 
 
+from '@mui/material';
+import axios from 'axios';
+import { HubspotContactsDisplay } from './HubspotContactsDisplay';
 const endpointMapping = {
     'Notion': 'notion',
     'Airtable': 'airtable',
@@ -36,20 +38,25 @@ export const DataForm = ({ integrationType, credentials }) => {
 
     return ( 
         //THIS COMPONENT RETURNS A TEXT FIELD AND 2 BUTTONS (ONE IS LOAD DATA) (ANOTHER ONE IS CLEAR DATA)
-        <Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' width='100%'>
-            <Box display='flex' flexDirection='column' width='100%'>
-                <TextField
-                    label="Loaded Data"
-                    value={loadedData || ''}
-                    sx={{mt: 2}}
-                    InputLabelProps={{ shrink: true }}
-                    disabled
-                />  
-                {/* THE TEXT FIELD displays value only if there is something in the loadedData variable, else the textfield remains empty and this text field is disable you cannot edit the values*/}
+        <Box display='flex' flexDirection='column' width='100%'>
+            {loadedData ? (
+                integrationType === 'Hubspot' ? (
+                    <HubspotContactsDisplay data={loadedData} />
+                ) : (
+                    <Typography sx={{ mt: 2 }}>
+                        Loaded {loadedData.length} items
+                    </Typography>
+                )
+            ) : (
+                <Typography sx={{ mt: 2 }}>
+                    No data loaded
+                </Typography>
+            )}
+            
+            <Box display='flex' gap={1} sx={{ mt: 2 }}>
                 
                 <Button
                     onClick={handleLoad}
-                    sx={{mt: 2}}
                     variant='contained'
                 >
                     Load Data
@@ -58,7 +65,6 @@ export const DataForm = ({ integrationType, credentials }) => {
 
                 <Button
                     onClick={() => setLoadedData(null)}
-                    sx={{mt: 1}}
                     variant='contained'
                 >
                     Clear Data
