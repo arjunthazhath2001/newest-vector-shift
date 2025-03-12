@@ -1,0 +1,36 @@
+# Ignore Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+
+# Ignore virtual environment (if any)
+venv/
+env/
+
+# Ignore Redis dump file
+dump.rdb
+
+# Ignore node_modules for frontend
+frontend/node_modules/
+
+# Ignore package-lock.json (if you prefer to not track it)
+frontend/package-lock.json
+
+# Ignore log files and other system-generated files
+*.log
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore VSCode workspace settings and configuration
+.vscode/
+
+# Ignore any backup files or temporary files
+*.bak
+*.swp
+*.tmp
+
+# Ignore Git itself
+.git/
