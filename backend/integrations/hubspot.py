@@ -206,14 +206,14 @@ async def create_integration_item_metadata_object(response_json: dict, item_type
         first_name = properties.get('firstname', '')
         last_name = properties.get('lastname', '')
         email = properties.get('email', '')
+
         
         # Construct a name using available information
         if first_name or last_name:
             name = f"{first_name} {last_name}".strip()
-        elif email:
-            name = email
         else:
             name = f"Contact {item_id}"
+
     else:
         # Generic handling for other item types
         name = response_json.get('properties', {}).get('name', f"{item_type} {item_id}")
@@ -222,7 +222,7 @@ async def create_integration_item_metadata_object(response_json: dict, item_type
     integration_item_metadata = IntegrationItem(
         id=f"{item_id}_{item_type}",  # Create a unique ID combining HubSpot ID and item type
         name=name,  # Use the constructed name
-        email=email, 
+        email=name,  
         type=item_type,  # Store the item type
         creation_time=response_json.get('createdAt'),  # Store creation timestamp if available
         last_modified_time=response_json.get('updatedAt'),  # Store update timestamp if available
