@@ -64,7 +64,6 @@ export const AirtableIntegration = ({ user, org, integrationParams, setIntegrati
     return (
         <>
         <Box sx={{mt: 2}}>
-            Parameters
             <Box display='flex' alignItems='center' justifyContent='center' sx={{mt: 2}}>
                 <Button 
                     variant='contained' 
