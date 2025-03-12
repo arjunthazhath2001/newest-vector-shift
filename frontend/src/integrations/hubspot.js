@@ -1,10 +1,3 @@
-// hubspot.js
-
-{/* The airtable.js file and notion.js file looks exactly the same. BECAUSE THE ENTIRE OAuth process for any service(hubspot/notion/airtable) is nothing but "A NEW WINDOW OPENING"(the user sending a request to connect with the HUBSPOT SERVICE THROUGH OUR APP) AND "THAT WINDOW GETTING CLOSED"(storing the authorization code that was offered by the authorization server of the HUBSPOT SERVICE).
-
-So we need a function that triggers opening of a new window and we also need a function that handles the workflow once the window is closed. Both these functions will trigger two different endpoints. THIS HIGH LEVEL PROCESS IS THE SAME FOR EVERY INTEGRATION SERVICE */}
-
-
 import { useState, useEffect } from 'react';
 import {
     Box,
@@ -12,6 +5,15 @@ import {
     CircularProgress
 } from '@mui/material';
 import axios from 'axios';
+
+// hubspot.js
+
+{/* The airtable.js file and notion.js file looks exactly the same. BECAUSE THE ENTIRE OAuth process for any service(hubspot/notion/airtable) is nothing but "A NEW WINDOW OPENING"(the user sending a request to connect with the HUBSPOT SERVICE THROUGH OUR APP) AND "THAT WINDOW GETTING CLOSED"(storing the authorization code that was offered by the authorization server of the HUBSPOT SERVICE).
+
+So we need a function that triggers opening of a new window and we also need a function that handles the workflow once the window is closed. Both these functions will trigger two different endpoints. THIS HIGH LEVEL PROCESS IS THE SAME FOR EVERY INTEGRATION SERVICE */}
+
+
+
 
 export const HubspotIntegration = ({ user, org, integrationParams, setIntegrationParams }) => {
     const [isConnecting, setIsConnecting] = useState(false); //CHANGES TO TRUE WHEN THE WINDOW IS OPEN, THE USER IS TRYING TO CONNECT AND THE OAuth process is still not finished and the authorization code hasnt been received yet
@@ -92,7 +94,7 @@ export const HubspotIntegration = ({ user, org, integrationParams, setIntegratio
 
     useEffect(() => {
         setIsConnected(integrationParams?.credentials ? true : false)
-    }, []);
+    }, [integrationParams]);
 
     //If credentials exist when the page is mounted, then the 'isConnected' state variable is set to true and the 'button name' reflects that
 
